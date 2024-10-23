@@ -1,0 +1,41 @@
+import { useState } from 'react';
+import { 
+  StyleSheet,
+  Text,
+  View,
+  TouchableHighlight
+} from 'react-native';
+
+export default function App() {
+  const [word, setWord] = useState<string>('');
+
+  const fetchRandomWord = async () => {
+    try {
+      const response = await fetch('https://random-word-api.herokuapp.com/word?number=1');
+      const data = await response.json();   /*tgis is the array*/ 
+      setWord(data[0]);
+
+    }catch (error){
+      console.error('Error fetching word: ', error);
+    }
+  };
+  return (
+    <View style={styles.container}>
+      <Text>{word || 'Press the button to load the word'}</Text> /*Press the button is similar placeholder text*/
+      <TouchableHighlight
+        onPress={fetchRandomWord}
+      >
+        <Text> Load Word </Text>
+      </TouchableHighlight>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
