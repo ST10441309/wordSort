@@ -3,66 +3,123 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableHighlight
+  TouchableOpacity,
+  ActivityIndicator
 } from 'react-native';
 
-const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'; /* a string is also an array */
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 export default function App() {
-  const [word, setWord] = useState<string>('');
-  const [displayWord, setDisplayWord] = useState<string>(''); /* displayword id the underscores for the word */
+  const [word, setWord] = useState('');
+  const [displayWord, setDisplayWord] = useState('');
   const [usedLetters, setUsedLetters] = useState<string[]>([]);
-  const [remainingGuesses, setRemainingGuesses] = useState<number>(6); /* 6 is for the amount of chances a person has to guess */
+  const [remainingGuesses, setRemainingGuesses] = useState(6);
+  const [loading, setLoading] = useState(false);
 
   const fetchRandomWord = async () => {
+    setLoading(true);
     try {
       const response = await fetch('https://random-word-api.herokuapp.com/word?number=1');
-      const data = await response.json();   /*this is the array for word generating*/ 
-      setWord(data[0].toUpperCase());
-      setDisplayWord('_ '.repeat(data[0].length)); /* this is how you know the length of the word and how many underscoreds to display */
+      const data = await response.json();
+      const newWord = data[0].toUpperCase();
+      setWord(newWord);
+      setDisplayWord('_'.repeat(newWord.length).split('').join(' '));
       setUsedLetters([]);
       setRemainingGuesses(6);
-
-    }catch (error){
+    } catch (error) {
       console.error('Error fetching word: ', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const renderAlphabetButtons = () => {
-    return [...ALPHABET].map((letter) => (
-      <TouchableHighlight
-        key={letter}
-        onPress={() => handleLetterPress(letter)}
-        disabled={usedLetters.includes(letter) || remainingGuesses <= 0}
-      ></TouchableHighlight>
-    ));
+    return (
+      <View style={styles.alphabetContainer}>
+        {[...ALPHABET].map((letter) => (
+          <TouchableOpacity
+            key={letter}
+            onPress={() => handleLetterPress(letter)}
+            disabled={usedLetters.includes(letter) || remainingGuesses <= 0}
+            style={[
+              styles.letterButton,
+              usedLetters.includes(letter) && styles.usedButton,
+              remainingGuesses <= 0 && styles.disabledButton
+            ]}
+          >
+            <Text style={[
+              styles.letterText,
+              usedLetters.includes(letter) && styles.usedLetterText
+            ]}>
+              {letter}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
   };
 
   const handleLetterPress = (letter: string) => {
-    if (usedLetters.includes(letter) || remainingGuesses <= 0)
-      return;
-    setUsedLetters([...usedLetters, letter])
-
-    if (word.includes(letter)){
-      const updatedDisplay = word.split('').map((char, index) =>
-        usedLetters.includes(char) || char === letter ? char : '_ '
-      ).join('');
-      setDisplayWord(updatedDisplay);
+    if (usedLetters.includes(letter) || remainingGuesses <= 0) return;
+    
+    setUsedLetters(prev => [...prev, letter]);
+    
+    if (word.includes(letter)) {
+      let newDisplay = '';
+      for (let i = 0; i < word.length; i++) {
+        if (word[i] === letter || usedLetters.includes(word[i])) {
+          newDisplay += word[i] + ' ';
+        } else {
+          newDisplay += '_ ';
+        }
+      }
+      setDisplayWord(newDisplay.trim());
     } else {
-      setRemainingGuesses(remainingGuesses - 1);
+      setRemainingGuesses(prev => prev - 1);
     }
   };
+
   return (
     <View style={styles.container}>
-      <Text>{displayWord || 'Press the button to start the word'}</Text> /* Press the button is similar placeholder text */
-      <TouchableHighlight onPress={fetchRandomWord}>
-        <Text> Start Game </Text>
-      </TouchableHighlight>
-    <View>
-      {renderAlphabetButtons()}
-    </View>
-      {remainingGuesses === 0 && <Text> Game Over! The word was {word} </Text>}
-      {displayWord === word && <Text> Congradulations! You guessed the word </Text>}
+      <Text style={styles.title}>Hangman Game</Text>
+      
+      <View style={styles.wordContainer}>
+        <Text style={styles.word}>
+          {displayWord || 'Press the button to start the game'}
+        </Text>
+      </View>
+
+      <TouchableOpacity 
+        style={styles.startButton}
+        onPress={fetchRandomWord}
+        disabled={loading}
+      >
+        <Text style={styles.startButtonText}>
+          {loading ? 'Loading...' : 'Start Game'}
+        </Text>
+      </TouchableOpacity>
+
+      {loading && <ActivityIndicator size="large" color="#0000ff" />}
+
+      <Text style={styles.guesses}>
+        Remaining guesses: {remainingGuesses}
+      </Text>
+
+      <View style={styles.buttonsContainer}>
+        {renderAlphabetButtons()}
+      </View>
+
+      {remainingGuesses === 0 && 
+        <Text style={styles.gameOverText}>
+          Game Over! The word was {word}
+        </Text>
+      }
+      
+      {displayWord.replace(/ /g, '') === word && word !== '' &&
+        <Text style={styles.winText}>
+          Congratulations! You guessed the word!
+        </Text>
+      }
     </View>
   );
 }
@@ -73,5 +130,76 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  wordContainer: {
+    marginVertical: 20,
+  },
+  word: {
+    fontSize: 24,
+    letterSpacing: 2,
+  },
+  startButton: {
+    backgroundColor: '#007AFF',
+    padding: 15,
+    borderRadius: 8,
+    marginVertical: 10,
+  },
+  startButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  guesses: {
+    fontSize: 18,
+    marginVertical: 10,
+  },
+  alphabetContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    maxWidth: 300,
+  },
+  buttonsContainer: {
+    marginTop: 20,
+  },
+  letterButton: {
+    width: 40,
+    height: 40,
+    margin: 5,
+    backgroundColor: '#E3E3E3',
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  letterText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  usedButton: {
+    backgroundColor: '#C0C0C0',
+  },
+  usedLetterText: {
+    color: '#666',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  gameOverText: {
+    color: 'red',
+    fontSize: 20,
+    marginTop: 20,
+    fontWeight: 'bold',
+  },
+  winText: {
+    color: 'green',
+    fontSize: 20,
+    marginTop: 20,
+    fontWeight: 'bold',
   },
 });
