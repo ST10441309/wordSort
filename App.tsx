@@ -6,6 +6,10 @@ import {
   TouchableOpacity,
   ActivityIndicator
 } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -81,7 +85,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Hangman Game</Text>
+      <Text style={styles.title}>The Word Sort Game</Text>
       
       <View style={styles.wordContainer}>
         <Text style={styles.word}>
@@ -124,10 +128,12 @@ export default function App() {
   );
 }
 
+const Stack = createNativeStackNavigator();
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#9B7EBD',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
