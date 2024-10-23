@@ -12,7 +12,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-const WelcomeScreen = ({navigation}) => {
+const WelcomeScreen = ({navigation}: {navigation: any}) => {
   return(
     <View style={styles.container}>
       <Button
@@ -25,7 +25,7 @@ const WelcomeScreen = ({navigation}) => {
   );
 };
 
-const GameScreen = ({navigation}) => {
+const GameScreen = ({navigation}: {navigation: any}) => {
   const [word, setWord] = useState('');
   const [displayWord, setDisplayWord] = useState('');
   const [usedLetters, setUsedLetters] = useState<string[]>([]);
@@ -147,7 +147,7 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Welcome">
         <Stack.Screen name="Welcome to the Word Sort Game!" component={WelcomeScreen}/>
-        <Stack.Screen name="Let's Play" component={GameScreen}/>
+        <Stack.Screen name="Game" component={GameScreen}/>
       </Stack.Navigator>
     </NavigationContainer>
   );
