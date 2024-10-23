@@ -3,17 +3,29 @@ import {
   StyleSheet,
   Text,
   View,
+  Button,
   TouchableOpacity,
   ActivityIndicator
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-
-
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-export default function App() {
+const WelcomeScreen = ({navigation}) => {
+  return(
+    <View style={styles.container}>
+      <Button
+        title="Start the Game!"
+        onPress={() => {
+        navigation.navigate('Game');
+      }}
+      />
+    </View>
+  );
+};
+
+const GameScreen = ({navigation}) => {
   const [word, setWord] = useState('');
   const [displayWord, setDisplayWord] = useState('');
   const [usedLetters, setUsedLetters] = useState<string[]>([]);
@@ -129,6 +141,17 @@ export default function App() {
 }
 
 const Stack = createNativeStackNavigator();
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Welcome">
+        <Stack.Screen name="Welcome to the Word Sort Game!" component={WelcomeScreen}/>
+        <Stack.Screen name="Let's Play" component={GameScreen}/>
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
